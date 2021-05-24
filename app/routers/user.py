@@ -1,8 +1,6 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import Optional
-from cryptography.fernet import Fernet
-from utils.WXBizDataCrypy import WXBizDataCrypt
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from utils._database import SessionLocal
 from utils import crud
 
 
@@ -11,6 +9,24 @@ router = APIRouter(
     tags=["user"],
     responses={404: {"description": "Not found /user"}},
 )
+
+def get_db():
+    _db = SessionLocal()
+    try:
+        yield _db
+    finally:
+        _db.close()
+
+@router.post("/login")
+async def login(username: str, password: str, db: Session = Depends(get_db)):
+    try:
+        res = crud.login(db, username, password)
+        return res
+    except Exception as e:
+        return {
+            "code": 1,
+            "message": e
+        }
 
 @router.get("/getadmins")
 async def get_admins():

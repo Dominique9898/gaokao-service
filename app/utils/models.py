@@ -88,6 +88,11 @@ class ScoreOfZJ(Base):
     min3 = Column(Integer)
     pc = Column(Integer)
 
+class Admin(Base):
+    __tablename__ = 'tb_admin'
+    username = Column(String, primary_key=True)
+    password = Column(String)
+
 """ 附上三个SQLAlchemy教程
 
 SQLAlchemy的基本操作大全 

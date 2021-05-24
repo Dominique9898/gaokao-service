@@ -4,10 +4,36 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 from utils import schemas
 from utils.db import Database
-from utils.models import University, New, Province, Tag, SchoolType, ScoreOfZJ, Test, Major
+from utils.models import University, New, Province, Tag, SchoolType, ScoreOfZJ, Test, Major, Admin
 import copy
 import math
 
+
+def login(db: Session, _username: str, _password: str):
+    try:
+        _user = db.query(Admin).filter(Admin.username == _username).first()
+        if _user:
+            if _password == _user.password:
+                return {
+                    "code": 0,
+                    "message": 'ok',
+                    "data": _user
+                }
+            else:
+                return {
+                    "code": 1,
+                    "message": '账号密码错误'
+                }
+        else:
+            return {
+                    "code": 1,
+                    "message": '账号不存在'
+                }
+    except Exception as e:
+        return {
+            "code": 1,
+            "message": e
+        }
 # 查询一定数量的院校
 def get_universities(db: Session, skip: int, limit: int):
     try:
@@ -52,7 +78,7 @@ def get_recommend_university(db:Session, provinces, score, type):
                 num = num + 1
                 sum = sum + res.min3
             avg = math.ceil(sum / num)
-            if (score > avg):
+            if (score >= avg):
                 obj = {}
                 obj['name'] = res.name
                 obj['score'] = {
@@ -296,14 +322,14 @@ def get_major(db):
             else:
                 parentNode = resArray[len(resArray) - 1]
                 parentNode['nodes'].append(res)
-                # if (parentNode['id'] == res.parent_id):
-                #     res.nodes = []
-                #     parentNode['nodes'].append(res)
-                # else:
-                #     parentNodes = parentNode['nodes']
-                #     for parentNode in parentNodes:
-                #         if parentNode.id == res.parent_id:
-                #             parentNode.nodes.append(res)
+                if (parentNode['id'] == res.parent_id):
+                    res.nodes = []
+                    parentNode['nodes'].append(res)
+                else:
+                    parentNodes = parentNode['nodes']
+                    for parentNode in parentNodes:
+                        if parentNode.id == res.parent_id:
+                            parentNode.nodes.append(res)
         # print(resArray)
         return {
             "title": tapTitle,
